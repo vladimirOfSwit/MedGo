@@ -10,11 +10,16 @@ import UIKit
 
 protocol LocationInputViewDelegate: class {
     func dismissLocationInputView()
+    func executeSearch(query: String)
 }
 
 class LocationInputView: UIView {
     
     //MARK: - Properties
+    
+    var user: User? {
+        didSet { titleLabel.text = user?.fullname }
+    }
     
     weak var delegate: LocationInputViewDelegate?
     
@@ -27,7 +32,6 @@ class LocationInputView: UIView {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Vladimir Savic"
         label.textColor = .darkGray
         label.font = UIFont.systemFont(ofSize: 16)
         return label
@@ -53,7 +57,7 @@ class LocationInputView: UIView {
     
     private lazy var startingLocationTextfield: UITextField = {
         let tf = UITextField()
-        tf.placeholder = "Current Location"
+        tf.placeholder = "Trenutna lokacija"
         tf.backgroundColor = .systemGroupedBackground
         tf.font = UIFont.systemFont(ofSize: 14)
         tf.isEnabled = false
@@ -68,10 +72,11 @@ class LocationInputView: UIView {
     
     private lazy var destinationLocationTextfield: UITextField = {
         let tf = UITextField()
-        tf.placeholder = "Enter a destination"
+        tf.placeholder = "Unesite krajnju destinaciju"
         tf.backgroundColor = .lightGray
         tf.returnKeyType = .search
         tf.font = UIFont.systemFont(ofSize: 14)
+        tf.delegate = self
         
         let paddingView = UIView()
         paddingView.setDimensions(height: 30, width: 8)
@@ -138,4 +143,18 @@ class LocationInputView: UIView {
     }
     
     
+}
+
+//MARK: - UITextFieldDelegate
+
+extension LocationInputView: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        
+        guard let query = textField.text else { return false }
+        
+        delegate?.executeSearch(query: query)
+        
+        return true
+        
+    }
 }
