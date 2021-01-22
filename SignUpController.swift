@@ -8,10 +8,13 @@
 
 import UIKit
 import Firebase
+import GeoFire
 
 class SignUpController: UIViewController {
     
     //MARK: - Properties
+    
+    private let location = LocationHandler.shared.locationManager.location
     
     private let titleLabel: UILabel = {
         return UIView().createTitleLabel(withName: "MedGo")
@@ -54,12 +57,12 @@ class SignUpController: UIViewController {
     }()
     
     private let passwordTextField: UITextField = {
-        return UITextField().textField(withPlaceholder: "Lozinka",
+        return UITextField().textField(withPlaceholder: "Šifra",
                                        isSecureTextEntry: true)
     }()
     
     private let accountTypeSegmentedControl: UISegmentedControl = {
-        let sc = UISegmentedControl(items: ["MedGo radnik", "Korisnik"])
+        let sc = UISegmentedControl(items: ["Korisnik", "Nurse"])
         sc.backgroundColor = .backgroundColor
         sc.tintColor = UIColor(white: 1, alpha: 0.87)
         sc.selectedSegmentIndex = 0
@@ -69,7 +72,7 @@ class SignUpController: UIViewController {
     private let signUpButton: AuthButton = {
         
         let button = AuthButton(type: .system)
-        button.setTitle("Registruj se", for: .normal)
+        button.setTitle("Register", for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
         button.addTarget(self, action: #selector(handleSignUp), for: .touchUpInside)
         return button
@@ -79,9 +82,9 @@ class SignUpController: UIViewController {
     let alreadyHaveAccountButton: UIButton = {
         
         let button = UIButton(type: .system)
-        let attributedTitle = NSMutableAttributedString(string: "Već imaš nalog?  ", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 16), NSAttributedString.Key.foregroundColor : UIColor.lightGray])
+        let attributedTitle = NSMutableAttributedString(string: "Already have an account?  ", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 16), NSAttributedString.Key.foregroundColor : UIColor.lightGray])
         
-        attributedTitle.append(NSAttributedString(string: "Uloguj se", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16), NSAttributedString.Key.foregroundColor: UIColor.mainBlueTint]))
+        attributedTitle.append(NSAttributedString(string: "Log in", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16), NSAttributedString.Key.foregroundColor: UIColor.mainBlueTint]))
         
         button.addTarget(self, action: #selector(handleShowLogIn), for: .touchUpInside)
         
@@ -101,6 +104,9 @@ class SignUpController: UIViewController {
         super.viewDidLoad()
         
         configureUI()
+        
+        
+        
     }
     
     //MARK: - Selectors
@@ -125,40 +131,70 @@ class SignUpController: UIViewController {
                           "fullname" : fullname,
                           "accountType" : accountTypeIndex] as [String : Any]
             
-            Database.database().reference().child("users").child(uid).updateChildValues(values) { (error, ref) in
+            
+            
+            if accountTypeIndex == 1 {
                 
+                let geofire = GeoFire(firebaseRef: REF_DRIVER_LOCATIONS)
                 
-                let keyWindow = UIApplication.shared.connectedScenes
-
-                        .filter({$0.activationState == .foregroundActive})
-
-                        .map({$0 as? UIWindowScene})
-
-                        .compactMap({$0})
-
-                        .first?.windows
-
-                        .filter({$0.isKeyWindow}).first
+                guard let location = self.location else { return }
                 
-                
-                guard let controller = keyWindow?.rootViewController as? HomeController else { return }
-                
-                controller.configureUI()
-                self.dismiss(animated: true, completion: nil)
+                geofire.setLocation(location, forKey: uid) { (error) in
+                    // do stuff in here
+                    
+                    self.updateUserDataAndShowHomeController(uid: uid, values: values)
+                    
+                    
+                }
+            
                 
             }
             
+            self.updateUserDataAndShowHomeController(uid: uid, values: values)
+            
         }
         
+       
+        
     }
-
+    
     @objc func handleShowLogIn() {
         
         navigationController?.popViewController(animated: true)
     }
     
-
+    
     //MARK: - Helper functions
+    
+    func updateUserDataAndShowHomeController(uid: String, values: [String : Any]) {
+        
+        REF_USERS.child(uid).updateChildValues(values) { (error, ref) in
+            
+            
+            let keyWindow = UIApplication.shared.connectedScenes
+                
+                .filter({$0.activationState == .foregroundActive})
+                
+                .map({$0 as? UIWindowScene})
+                
+                .compactMap({$0})
+                
+                .first?.windows
+                
+                .filter({$0.isKeyWindow}).first
+            
+            
+            guard let controller = keyWindow?.rootViewController as? HomeController else { return }
+            
+            controller.configure()
+            self.dismiss(animated: true, completion: nil)
+            
+            
+        }
+        
+        
+        
+    }
     
     func configureUI() {
         
@@ -199,3 +235,5 @@ class SignUpController: UIViewController {
     
     
 }
+
+

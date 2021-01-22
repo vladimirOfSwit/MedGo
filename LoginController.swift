@@ -40,14 +40,14 @@ class LoginViewController: UIViewController {
     }()
     
     private let passwordTextField: UITextField = {
-        return UITextField().textField(withPlaceholder: "Lozinka",
+        return UITextField().textField(withPlaceholder: "Password",
                                        isSecureTextEntry: true)
     }()
     
     private let loginButton: AuthButton = {
         
         let button = AuthButton(type: .system)
-        button.setTitle("Uloguj se", for: .normal)
+        button.setTitle("Log in", for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
         button.addTarget(self, action: #selector(handleLogIn), for: .touchUpInside)
         return button
@@ -57,9 +57,9 @@ class LoginViewController: UIViewController {
     let dontHaveAccountButton: UIButton = {
         
         let button = UIButton(type: .system)
-        let attributedTitle = NSMutableAttributedString(string: "Još uvek nemaš nalog?  ", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 16), NSAttributedString.Key.foregroundColor : UIColor.lightGray])
+        let attributedTitle = NSMutableAttributedString(string: "Don't have an account?  ", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 16), NSAttributedString.Key.foregroundColor : UIColor.lightGray])
         
-        attributedTitle.append(NSAttributedString(string: "Registruj se", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16), NSAttributedString.Key.foregroundColor: UIColor.mainBlueTint]))
+        attributedTitle.append(NSAttributedString(string: "Register", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16), NSAttributedString.Key.foregroundColor: UIColor.mainBlueTint]))
         
         button.addTarget(self, action: #selector(handleShowSignUp), for: .touchUpInside)
         
@@ -111,7 +111,7 @@ class LoginViewController: UIViewController {
             
             guard let controller = keyWindow?.rootViewController as? HomeController else { return }
             
-            controller.configureUI()
+            controller.configure()
             self.dismiss(animated: true, completion: nil)
             
         }
